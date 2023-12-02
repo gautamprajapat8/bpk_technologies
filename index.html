@@ -1,0 +1,201 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .btn {
+            cursor: pointer;
+            padding: 8px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            margin: 4px 2px;
+            border-radius: 4px;
+        }
+
+        .btn-edit {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-delete {
+            background-color: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Student Management System</h1>
+
+    <form id="studentForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" required>
+
+        <label for="major">Major:</label>
+        <input type="text" id="major" required>
+
+        <label for="enrollmentDate">Enrollment Date:</label>
+        <input type="date" id="enrollmentDate" required>
+
+        <button type="button" onclick="addStudent()">Add Student</button>
+    </form>
+
+    <table id="studentTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Major</th>
+                <th>Enrollment Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <script>
+        // Function to add a new student
+        function addStudent() {
+            
+            const name = document.getElementById('name').value;
+            const major = document.getElementById('major').value;
+            const enrollmentDate = document.getElementById('enrollmentDate').value;
+
+            // Use fetch API to make a POST request to the backend
+            fetch('https://studentsrecords-production.up.railway.app/api/students/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin':'*'
+                },
+                body: JSON.stringify({
+                    name,
+                    major,
+                    enrollmentDate,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Refresh the table
+                getStudents();
+                // Reset the form
+                document.getElementById('studentForm').reset();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Function to get all students
+        function getStudents() {
+            // Use fetch API to make a GET request to the backend
+            fetch('https://studentsrecords-production.up.railway.app/api/students/allstudent')
+            .then(response => response.json())
+            .then(data => {
+                // Populate the table with student data
+                const tableBody = document.getElementById('tableBody');
+                tableBody.innerHTML = '';
+
+                data.forEach(student => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${student.id}</td>
+                        <td>${student.name}</td>
+                        <td>${student.major}</td>
+                        <td>${student.enrollmentDate}</td>
+                        <td>
+                            <button class="btn btn-edit" onclick="viewStudent(${student.id})">View</button>
+                            <button class="btn btn-edit" onclick="editStudent(${student.id})">Edit</button>
+                            <button class="btn btn-delete" onclick="deleteStudent(${student.id})">Delete</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Function to view a specific student
+        function viewStudent(id) {
+            // Use fetch API to make a GET request to the backend
+            fetch(`https://studentsrecords-production.up.railway.app/api/students/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                // Display the details of the selected student
+                alert(`ID: ${data.id}\nName: ${data.name}\nMajor: ${data.major}\nEnrollment Date: ${data.enrollmentDate}`);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Function to edit a specific student
+        function editStudent(id) {
+            // Use fetch API to make a PUT request to the backend
+            fetch(`https://studentsrecords-production.up.railway.app/api/students/update/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin':'*'
+                },
+                body: JSON.stringify({
+                    // Include the updated student data
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Refresh the table
+                getStudents();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Function to delete a specific student
+        function deleteStudent(id) {
+            // Use fetch API to make a DELETE request to the backend
+            fetch(`https://studentsrecords-production.up.railway.app/api/students/remove/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin':'*'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Refresh the table
+                getStudents();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Initial load of students
+        getStudents();
+    </script>
+
+</body>
+</html>
